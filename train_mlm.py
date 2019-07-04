@@ -1,12 +1,12 @@
-from edge import *
+from mlm_model import *
 from collections import OrderedDict
 from data_mlm import  *
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
 
-CUDA_VISIBLE_DEVICES=1,2,3
+
 def process_data_dir(data_dir):
     files = os.listdir(data_dir)
     files = map(lambda x: os.path.join(data_dir, x), files)
@@ -24,6 +24,8 @@ TE_sal_dirs = [("/home/archer/Downloads/datasets/ECSSD/ECSSD-Image",
 
 TE_ed_dir = [("./images/test",
            "./bon/test")]
+
+
 
 def DATA(sal_dirs,ed_dir,trainable):
 
@@ -63,6 +65,12 @@ train_data = DATA(TR_sal_dirs,TR_ed_dir,trainable=True)
 test_data =  DATA(TE_sal_dirs,TE_ed_dir,trainable=False)
 
 
+def MLMLoss(m0,m1,m2):
+    l=0
+    for i in range(len(m0)):
+        l += torch.nn.MSELoss(m0[i],m1[i])+torch.nn.MSELoss(m2[i],m1[i])+torch.nn.MSELoss(m0[i],m2[i])
+
+    return l
 
 
 
