@@ -172,10 +172,10 @@ for epoch in range(1, config.NUM_EPOCHS + 1):
 
         if dd == True:
             ##fake
-            f, m, e ,PRE_E,mlmls= D_E(img_batch,img_e)
+            f, m, e ,PRE_E,mlml_1,mlm_2= D_E(img_batch,img_e)
             
             masks_L ,sal_edges_l,E_LOSS= cal_DLoss(m,e,PRE_E,SAL_E,label_batch,E_Lable,w_s_m.cuda(),w_s_e.cuda(),w_e.cuda(),labels)
-            MLM_loss = cal_MLMloss(mlms)
+            MLM_loss = cal_MLMloss(m,mlm_1,mlm_2)
             print('sal_edgeL:',float(sal_edges_l),'maps_l',float(masks_L),'ED_L',float(E_LOSS))
 
 
@@ -203,72 +203,13 @@ for epoch in range(1, config.NUM_EPOCHS + 1):
             pre_e_l = F.binary_cross_entropy(es[2],SAL_E)
 
             DE_optimizer.zero_grad()
-            DE_l_1 = 100*pre_m_l+500*pre_e_l+100*pre_ms_l_16+100*pre_ms_l_64+500*pre_es_l+100*pre_ms_l_256
+            DE_l_1 = 100*pre_m_l+100*pre_e_l+100*pre_ms_l_16+100*pre_ms_l_64+100*pre_es_l+100*pre_ms_l_256
 
 
             DE_l_1.backward()
             DE_optimizer.step()
 
 
-
-
-
-
-        if uu == True:
-            f, m, e, PRE_E = D_E(img_batch, img_e)
-            ff,ll = list(),list()
-            for i in range(5):
-                ff.append(f[i].detach())
-
-            del m, e
-
-            masks, es,li_f = U(f)
-            for i in range(5):
-
-                ll.append(li_f[i].detach())
-                #print(ll[i].shape)
-
-
-            pre_es_l = 0
-            ma = torch.abs(label_batch - masks[3]).mean()
-            pre_m_l = F.binary_cross_entropy(masks[3], label_batch)
-
-            pre_ms_l_16 = F.binary_cross_entropy(masks[0], labels[2].cuda())
-            pre_ms_l_64 = F.binary_cross_entropy(masks[1], labels[0].cuda())
-            pre_ms_l_256 = F.binary_cross_entropy(masks[2], label_batch)
-
-            for i in range(2):
-
-                pre_es_l += F.binary_cross_entropy(es[i], e_labels[i].cuda())
-            pre_e_l = F.binary_cross_entropy(es[2], SAL_E)
-
-
-            print('pre_m_l',float(pre_m_l),'ms_l16',float(pre_ms_l_16),'es_l',float(pre_es_l),'pre_e_l',float(pre_e_l))
-            U_l_1 = 200*pre_m_l+600*pre_e_l+400*pre_es_l+200*pre_ms_l_16+200*pre_ms_l_64+100*pre_ms_l_256
-            U_optimizer.zero_grad()
-            U_l_1.backward()
-            U_optimizer.step()
-
-
-
-         #   print()
-
-        #f, m, e, PRE_E = D_E(img_batch, img_e)
-        #ll = list()
-
-        #masks, es, li_f = U(f)
-
-        #for i in range(5):
-        #    ll.append(li_f[i].detach())
-
-        #del masks, es, li_f, f, m, e, PRE_E
-        #pre_mask = RE(ll)
-        #ma2 = torch.abs(label_batch - pre_mask).mean()
-        #print('ma2', float(ma2))
-        #loss = F.binary_cross_entropy(pre_mask, label_batch)
-        #RE_optimizer.zero_grad()
-        #loss.backward()
-        #RE_optimizer.step()
         if iter_cnt%100 ==0:
             torch.save(D_E.state_dict(), './checkpoints/edges/D_E20epoch%d.pkl' % epoch)
             torch.save(U.state_dict(), './checkpoints/edges/U20epoch%d.pkl' % epoch)
@@ -308,7 +249,7 @@ for epoch in range(1, config.NUM_EPOCHS + 1):
         img_batch = Variable(img.cuda())  # ,Variable(z_.cuda())
         img_e =Variable(img_e.cuda())
 
-        f,y1,y2,PRE_E,mlms = D_E(img_batch,img_e)
+        f,y1,y2,PRE_E,mlm_1,mlm_2 = D_E(img_batch,img_e)
         masks,es,y = U(f)
         pre_mask = masks[3]
 
